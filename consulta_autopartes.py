@@ -10,14 +10,18 @@ st.title("🔎 Consulta de Inventario - Autopartes")
 def load_data():
     df = pd.read_excel('INVENTARIO FINAL AUTOPARTES Phyton.xlsx')
 
-    # Limpiar y formatear columnas
+    # Limpieza y formato de columnas
     df['Marca'] = df['Marca'].astype(str).str.strip().str.upper()
     df['Categoria'] = df['Categoria'].astype(str).str.strip().str.title()
     df['Descripción'] = df['Descripción'].astype(str).str.strip()
 
-    # Eliminar la columna "Precio Original"
+    # Eliminar columna "Precio Original"
     if 'Precio Original' in df.columns:
         df.drop(columns=['Precio Original'], inplace=True)
+
+    # Filtrar artículos que no estén marcados como "Vendido"
+    if 'Estado' in df.columns:
+        df = df[df['Estado'].str.upper() != 'VENDIDO']
 
     return df
 
@@ -31,7 +35,7 @@ if "reset" not in st.session_state:
 if st.button("🔄 Limpiar filtros"):
     st.session_state.reset = True
 
-# UI de filtros
+# Filtros visuales
 col1, col2, col3, col4 = st.columns([2, 1, 1, 2])
 
 with col1:
@@ -59,7 +63,7 @@ with col4:
         step=1
     )
 
-# Limpiar estado después de aplicar filtros
+# Limpiar bandera de reinicio después de aplicar filtros
 if st.session_state.reset:
     st.session_state.reset = False
 
