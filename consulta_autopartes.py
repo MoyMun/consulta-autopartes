@@ -9,9 +9,16 @@ st.title("🔎 Consulta de Inventario - Autopartes")
 @st.cache_data
 def load_data():
     df = pd.read_excel('INVENTARIO FINAL AUTOPARTES Phyton.xlsx')
+
+    # Limpiar y formatear columnas
     df['Marca'] = df['Marca'].astype(str).str.strip().str.upper()
     df['Categoria'] = df['Categoria'].astype(str).str.strip().str.title()
     df['Descripción'] = df['Descripción'].astype(str).str.strip()
+
+    # Eliminar la columna "Precio Original"
+    if 'Precio Original' in df.columns:
+        df.drop(columns=['Precio Original'], inplace=True)
+
     return df
 
 df = load_data()
