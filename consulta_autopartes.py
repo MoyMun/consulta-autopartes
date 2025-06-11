@@ -5,6 +5,19 @@ import pandas as pd
 st.set_page_config(page_title="Consulta de Inventario - Autopartes", page_icon="🔎", layout="wide")
 st.title("🔎 Consulta de Inventario - Autopartes")
 
+# Mostrar logo y WhatsApp
+col_logo, col_info = st.columns([1, 4])
+
+with col_logo:
+    st.image("logo.png", width=120)
+
+with col_info:
+    st.markdown("""
+        ### Autopartes Villa Insurgentes  
+        📍 León, Guanajuato  
+        📞 WhatsApp: [477 247 9133](https://wa.me/524772479133)
+    """)
+
 # Función para cargar y limpiar los datos
 @st.cache_data
 def load_data():
