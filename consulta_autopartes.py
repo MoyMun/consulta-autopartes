@@ -2,8 +2,10 @@ import streamlit as st
 import pandas as pd
 
 # Configuración de la página
-st.set_page_config(page_title="Consulta de Inventario - Autopartes", page_icon="🔎", layout="wide")
-st.title("🔎 Consulta de Inventario - Autopartes")
+st.set_page_config(page_title="Inventario de Autopartes", page_icon="📦", layout="wide")
+
+# Título más pequeño
+st.markdown("### 📦 Inventario de Autopartes")
 
 # Mostrar logo y WhatsApp
 col_logo, col_info = st.columns([1, 4])
