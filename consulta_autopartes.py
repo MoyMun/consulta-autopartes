@@ -91,14 +91,15 @@ with tab2:
         st.info("Aún no hay productos marcados como vendidos.")
     else:
         st.dataframe(df_vendido)
+
 with tab3:
     st.markdown("### 🛠️ Marcar producto como vendido")
 
-    codigo_a_vender = st.text_input("Código del producto")
-    nuevo_precio = st.number_input("Precio final de venta (Outlet)", min_value=0.0, step=10.0)
+    codigo_a_vender = st.text_input("Código del producto", key="vender_codigo")
+    nuevo_precio = st.number_input("Precio final de venta (Outlet)", min_value=0.0, step=10.0, key="vender_precio")
     ubicaciones = sorted(df_todo['Ubicación'].dropna().unique())
-    ubicacion_seleccionada = st.selectbox("Ubicación de venta", ubicaciones)
-    password_input = st.text_input("Contraseña", type="password")
+    ubicacion_seleccionada = st.selectbox("Ubicación de venta", ubicaciones, key="vender_ubicacion")
+    password_input = st.text_input("Contraseña", type="password", key="vender_password")
 
     if st.button("✅ Confirmar venta"):
         if password_input == CONTRASEÑA:
@@ -121,27 +122,25 @@ with tab4:
 
     col1, col2 = st.columns(2)
     with col1:
-        nuevo_codigo = st.text_input("Código del producto")
+        nuevo_codigo = st.text_input("Código del producto", key="agregar_codigo")
         ubicaciones_existentes = sorted(df_todo['Ubicación'].dropna().unique())
-        nueva_ubicacion = st.selectbox("Ubicación", ubicaciones_existentes + ["Otra..."])
+        nueva_ubicacion = st.selectbox("Ubicación", ubicaciones_existentes + ["Otra..."], key="agregar_ubicacion_opcion")
         if nueva_ubicacion == "Otra...":
-            nueva_ubicacion = st.text_input("Especifica nueva ubicación")
-
-        nueva_descripcion = st.text_input("Descripción")
-        nuevo_precio_original = st.number_input("Precio Original", min_value=0.0, step=10.0)
-        nuevo_precio_comercial = st.number_input("Precio Comercial", min_value=0.0, step=10.0)
+            nueva_ubicacion = st.text_input("Especifica nueva ubicación", key="agregar_ubicacion")
+        nueva_descripcion = st.text_input("Descripción", key="agregar_descripcion")
+        nuevo_precio_original = st.number_input("Precio Original", min_value=0.0, step=10.0, key="agregar_precio_original")
+        nuevo_precio_comercial = st.number_input("Precio Comercial", min_value=0.0, step=10.0, key="agregar_precio_comercial")
     with col2:
-        nuevo_precio_outlet = st.number_input("Precio Outlet", min_value=0.0, step=10.0)
-        nueva_marca = st.text_input("Marca")
-        nuevo_modelo = st.text_input("Modelo")
+        nuevo_precio_outlet = st.number_input("Precio Outlet", min_value=0.0, step=10.0, key="agregar_precio_outlet")
+        nueva_marca = st.text_input("Marca", key="agregar_marca")
+        nuevo_modelo = st.text_input("Modelo", key="agregar_modelo")
         categorias_existentes = sorted(df_todo['Categoria'].dropna().unique())
-        nueva_categoria = st.selectbox("Categoría", categorias_existentes + ["Otra..."])
+        nueva_categoria = st.selectbox("Categoría", categorias_existentes + ["Otra..."], key="agregar_categoria_opcion")
         if nueva_categoria == "Otra...":
-            nueva_categoria = st.text_input("Especifica nueva categoría")
+            nueva_categoria = st.text_input("Especifica nueva categoría", key="agregar_categoria")
+        nuevo_estado = st.selectbox("Estado", ["DISPONIBLE", "VENDIDO"], key="agregar_estado")
 
-        nuevo_estado = st.selectbox("Estado", ["DISPONIBLE", "VENDIDO"])
-
-    password_nuevo = st.text_input("Contraseña para guardar", type="password")
+    password_nuevo = st.text_input("Contraseña para guardar", type="password", key="agregar_password")
 
     if st.button("📦 Guardar nuevo producto"):
         if password_nuevo == CONTRASEÑA:
