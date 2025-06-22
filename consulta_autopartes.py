@@ -1,6 +1,8 @@
+
 import streamlit as st
 import pandas as pd
 from datetime import datetime
+from pytz import timezone
 
 st.set_page_config(page_title="Inventario de Autopartes", page_icon="📦", layout="wide")
 st.markdown("### 📦 Inventario de Autopartes")
@@ -43,6 +45,7 @@ tab1, tab2, tab3, tab4 = st.tabs([
     "➕ Agregar nuevo producto"
 ])
 
+# TAB 1 - Inventario disponible
 with tab1:
     if "reset" not in st.session_state:
         st.session_state.reset = False
@@ -69,8 +72,7 @@ with tab1:
 
     filtered_df = df_disponible.copy()
     if search_term:
-        mask = filtered_df['Código'].astype(str).str.contains(search_term, case=False, na=False) | \
-               filtered_df['Descripción'].astype(str).str.contains(search_term, case=False, na=False)
+        mask = filtered_df['Código'].astype(str).str.contains(search_term, case=False, na=False) |                filtered_df['Descripción'].astype(str).str.contains(search_term, case=False, na=False)
         filtered_df = filtered_df[mask]
     if selected_category != "Selecciona una categoría":
         filtered_df = filtered_df[filtered_df['Categoria'] == selected_category]
@@ -85,13 +87,23 @@ with tab1:
         st.dataframe(filtered_df)
         st.download_button("💾 Exportar resultados filtrados", data=filtered_df.to_csv(index=False), file_name="resultados.csv", mime="text/csv")
 
+# TAB 2 - Historial de vendidos
 with tab2:
     st.markdown("### 🧾 Historial de productos vendidos")
+
     if df_vendido.empty:
         st.info("Aún no hay productos marcados como vendidos.")
     else:
         st.dataframe(df_vendido)
 
+        st.download_button(
+            label="💾 Descargar historial de ventas",
+            data=df_vendido.to_csv(index=False),
+            file_name="historial_ventas.csv",
+            mime="text/csv"
+        )
+
+# TAB 3 - Marcar como vendido
 with tab3:
     st.markdown("### 🛠️ Marcar producto como vendido")
 
@@ -102,13 +114,17 @@ with tab3:
     password_input = st.text_input("Contraseña", type="password", key="vender_password")
 
     if st.button("✅ Confirmar venta"):
-        if password_input == CONTRASEÑA:
+        if password_input == "moy<<250403":
             if codigo_a_vender in df_todo['Código'].astype(str).values:
                 idx = df_todo[df_todo['Código'].astype(str) == codigo_a_vender].index[0]
                 df_todo.at[idx, 'Estado'] = 'VENDIDO'
                 df_todo.at[idx, 'Precio Outlet'] = nuevo_precio
                 df_todo.at[idx, 'Ubicación'] = ubicacion_seleccionada
-                df_todo.at[idx, 'Fecha Venta'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+                zona_mx = timezone('America/Mexico_City')
+                hora_actual = datetime.now(zona_mx).strftime("%Y-%m-%d %H:%M:%S")
+                df_todo.at[idx, 'Fecha Venta'] = hora_actual
+
                 df_todo.to_excel(ARCHIVO_EXCEL, index=False)
                 st.success(f"✅ Producto {codigo_a_vender} marcado como VENDIDO.")
                 st.info("🔁 Recarga la app para ver los cambios.")
@@ -117,33 +133,39 @@ with tab3:
         else:
             st.error("❌ Contraseña incorrecta.")
 
+# TAB 4 - Agregar nuevo producto
 with tab4:
     st.markdown("### ➕ Agregar nuevo producto al inventario")
 
     col1, col2 = st.columns(2)
     with col1:
         nuevo_codigo = st.text_input("Código del producto", key="agregar_codigo")
+
         ubicaciones_existentes = sorted(df_todo['Ubicación'].dropna().unique())
-        nueva_ubicacion = st.selectbox("Ubicación", ubicaciones_existentes + ["Otra..."], key="agregar_ubicacion_opcion")
+        nueva_ubicacion = st.selectbox("Ubicación", ubicaciones_existentes + ["Otra..."], key="agregar_ubicacion")
         if nueva_ubicacion == "Otra...":
-            nueva_ubicacion = st.text_input("Especifica nueva ubicación", key="agregar_ubicacion")
+            nueva_ubicacion = st.text_input("Especifica nueva ubicación", key="agregar_ubicacion_manual")
+
         nueva_descripcion = st.text_input("Descripción", key="agregar_descripcion")
         nuevo_precio_original = st.number_input("Precio Original", min_value=0.0, step=10.0, key="agregar_precio_original")
         nuevo_precio_comercial = st.number_input("Precio Comercial", min_value=0.0, step=10.0, key="agregar_precio_comercial")
+
     with col2:
         nuevo_precio_outlet = st.number_input("Precio Outlet", min_value=0.0, step=10.0, key="agregar_precio_outlet")
         nueva_marca = st.text_input("Marca", key="agregar_marca")
         nuevo_modelo = st.text_input("Modelo", key="agregar_modelo")
+
         categorias_existentes = sorted(df_todo['Categoria'].dropna().unique())
-        nueva_categoria = st.selectbox("Categoría", categorias_existentes + ["Otra..."], key="agregar_categoria_opcion")
+        nueva_categoria = st.selectbox("Categoría", categorias_existentes + ["Otra..."], key="agregar_categoria")
         if nueva_categoria == "Otra...":
-            nueva_categoria = st.text_input("Especifica nueva categoría", key="agregar_categoria")
+            nueva_categoria = st.text_input("Especifica nueva categoría", key="agregar_categoria_manual")
+
         nuevo_estado = st.selectbox("Estado", ["DISPONIBLE", "VENDIDO"], key="agregar_estado")
 
     password_nuevo = st.text_input("Contraseña para guardar", type="password", key="agregar_password")
 
     if st.button("📦 Guardar nuevo producto"):
-        if password_nuevo == CONTRASEÑA:
+        if password_nuevo == "moy<<250403":
             nuevo_producto = {
                 "Código": nuevo_codigo,
                 "Ubicación": nueva_ubicacion,
