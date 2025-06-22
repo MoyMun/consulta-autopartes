@@ -24,8 +24,6 @@ def cargar_datos_completos():
     df['Marca'] = df['Marca'].astype(str).str.strip().str.upper()
     df['Categoria'] = df['Categoria'].astype(str).str.strip().str.title()
     df['Descripción'] = df['Descripción'].astype(str).str.strip()
-    if 'Precio Original' in df.columns:
-        df.drop(columns=['Precio Original'], inplace=True)
     return df
 
 df_todo = cargar_datos_completos()
@@ -38,7 +36,12 @@ col1.metric("Total productos", len(df_todo))
 col2.metric("Disponibles", len(df_disponible))
 col3.metric("Vendidos", len(df_vendido))
 
-tab1, tab2, tab3 = st.tabs(["📦 Inventario disponible", "🧾 Historial de vendidos", "🛠️ Marcar como vendido"])
+tab1, tab2, tab3, tab4 = st.tabs([
+    "📦 Inventario disponible",
+    "🧾 Historial de vendidos",
+    "🛠️ Marcar como vendido",
+    "➕ Agregar nuevo producto"
+])
 
 with tab1:
     if "reset" not in st.session_state:
@@ -88,7 +91,6 @@ with tab2:
         st.info("Aún no hay productos marcados como vendidos.")
     else:
         st.dataframe(df_vendido)
-
 with tab3:
     st.markdown("### 🛠️ Marcar producto como vendido")
 
@@ -111,5 +113,53 @@ with tab3:
                 st.info("🔁 Recarga la app para ver los cambios.")
             else:
                 st.error("❌ El código no existe.")
+        else:
+            st.error("❌ Contraseña incorrecta.")
+
+with tab4:
+    st.markdown("### ➕ Agregar nuevo producto al inventario")
+
+    col1, col2 = st.columns(2)
+    with col1:
+        nuevo_codigo = st.text_input("Código del producto")
+        ubicaciones_existentes = sorted(df_todo['Ubicación'].dropna().unique())
+        nueva_ubicacion = st.selectbox("Ubicación", ubicaciones_existentes + ["Otra..."])
+        if nueva_ubicacion == "Otra...":
+            nueva_ubicacion = st.text_input("Especifica nueva ubicación")
+
+        nueva_descripcion = st.text_input("Descripción")
+        nuevo_precio_original = st.number_input("Precio Original", min_value=0.0, step=10.0)
+        nuevo_precio_comercial = st.number_input("Precio Comercial", min_value=0.0, step=10.0)
+    with col2:
+        nuevo_precio_outlet = st.number_input("Precio Outlet", min_value=0.0, step=10.0)
+        nueva_marca = st.text_input("Marca")
+        nuevo_modelo = st.text_input("Modelo")
+        categorias_existentes = sorted(df_todo['Categoria'].dropna().unique())
+        nueva_categoria = st.selectbox("Categoría", categorias_existentes + ["Otra..."])
+        if nueva_categoria == "Otra...":
+            nueva_categoria = st.text_input("Especifica nueva categoría")
+
+        nuevo_estado = st.selectbox("Estado", ["DISPONIBLE", "VENDIDO"])
+
+    password_nuevo = st.text_input("Contraseña para guardar", type="password")
+
+    if st.button("📦 Guardar nuevo producto"):
+        if password_nuevo == CONTRASEÑA:
+            nuevo_producto = {
+                "Código": nuevo_codigo,
+                "Ubicación": nueva_ubicacion,
+                "Descripción": nueva_descripcion,
+                "Precio Original": nuevo_precio_original,
+                "Precio Comercial": nuevo_precio_comercial,
+                "Precio Outlet": nuevo_precio_outlet,
+                "Marca": nueva_marca,
+                "Modelo": nuevo_modelo,
+                "Categoria": nueva_categoria,
+                "Estado": nuevo_estado
+            }
+            df_todo = pd.concat([df_todo, pd.DataFrame([nuevo_producto])], ignore_index=True)
+            df_todo.to_excel(ARCHIVO_EXCEL, index=False)
+            st.success("✅ Producto agregado correctamente.")
+            st.info("🔁 Recarga la app para ver los cambios.")
         else:
             st.error("❌ Contraseña incorrecta.")
