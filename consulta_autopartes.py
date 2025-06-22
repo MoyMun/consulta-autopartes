@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
+from datetime import datetime
 
-# Configuración de la página
 st.set_page_config(page_title="Inventario de Autopartes", page_icon="📦", layout="wide")
 st.markdown("### 📦 Inventario de Autopartes")
 
@@ -19,7 +19,6 @@ with col_info:
 ARCHIVO_EXCEL = "INVENTARIO FINAL AUTOPARTES Phyton.xlsx"
 CONTRASEÑA = "moy<<250403"
 
-# Cargar datos
 def cargar_datos_completos():
     df = pd.read_excel(ARCHIVO_EXCEL)
     df['Marca'] = df['Marca'].astype(str).str.strip().str.upper()
@@ -33,14 +32,12 @@ df_todo = cargar_datos_completos()
 df_disponible = df_todo[df_todo['Estado'].str.upper() != 'VENDIDO']
 df_vendido = df_todo[df_todo['Estado'].str.upper() == 'VENDIDO']
 
-# Indicadores rápidos
 st.markdown("### 📊 Resumen:")
 col1, col2, col3 = st.columns(3)
 col1.metric("Total productos", len(df_todo))
 col2.metric("Disponibles", len(df_disponible))
 col3.metric("Vendidos", len(df_vendido))
 
-# Pestañas de navegación
 tab1, tab2, tab3 = st.tabs(["📦 Inventario disponible", "🧾 Historial de vendidos", "🛠️ Marcar como vendido"])
 
 with tab1:
@@ -94,15 +91,24 @@ with tab2:
 
 with tab3:
     st.markdown("### 🛠️ Marcar producto como vendido")
+
     codigo_a_vender = st.text_input("Código del producto")
+    nuevo_precio = st.number_input("Precio final de venta (Outlet)", min_value=0.0, step=10.0)
+    ubicaciones = sorted(df_todo['Ubicación'].dropna().unique())
+    ubicacion_seleccionada = st.selectbox("Ubicación de venta", ubicaciones)
     password_input = st.text_input("Contraseña", type="password")
-    if st.button("✅ Marcar como VENDIDO"):
+
+    if st.button("✅ Confirmar venta"):
         if password_input == CONTRASEÑA:
             if codigo_a_vender in df_todo['Código'].astype(str).values:
-                df_todo.loc[df_todo['Código'].astype(str) == codigo_a_vender, 'Estado'] = 'VENDIDO'
+                idx = df_todo[df_todo['Código'].astype(str) == codigo_a_vender].index[0]
+                df_todo.at[idx, 'Estado'] = 'VENDIDO'
+                df_todo.at[idx, 'Precio Outlet'] = nuevo_precio
+                df_todo.at[idx, 'Ubicación'] = ubicacion_seleccionada
+                df_todo.at[idx, 'Fecha Venta'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 df_todo.to_excel(ARCHIVO_EXCEL, index=False)
                 st.success(f"✅ Producto {codigo_a_vender} marcado como VENDIDO.")
-                st.info("🔁 Vuelve a cargar la app para ver los cambios.")
+                st.info("🔁 Recarga la app para ver los cambios.")
             else:
                 st.error("❌ El código no existe.")
         else:
